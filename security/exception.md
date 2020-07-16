@@ -154,3 +154,8 @@ public class ResultBody {
     }
 }
 ```
+
+- 在springboot中，使用通用模块管理全局异常时，在需要制定扫描的包
+```text
+@SpringBootApplication(scanBasePackages = {"com.springcloud"})
+```

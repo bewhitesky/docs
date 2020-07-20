@@ -52,7 +52,7 @@ location ~ /M00 {
 
 
 
-禁止缓存：
+禁止缓存：解决图片删除后，还能访问的问题
 
 ```
 add_header Cache-Control no-store;

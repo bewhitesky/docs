@@ -55,3 +55,9 @@
     
 * fastDfs
     * [引入fastDfs](fastDfs/fastDfs.md)
+
+* nginx
+    * [nginx基础](nginx/nginx.md)
+    
+* canal
+    * [canal配置](canal/canal.md)

@@ -61,3 +61,54 @@ spring.redis.timeout=1200
 > （9） 退出监听器控制台，命令：exit 
 >
 > （10）重启数据库结束
+
+
+#### lua安装
+安装步骤,在linux系统中执行下面的命令。
+
+```properties
+curl -R -O http://www.lua.org/ftp/lua-5.3.5.tar.gz
+tar zxf lua-5.3.5.tar.gz
+cd lua-5.3.5
+make linux test
+```
+
+注意：此时安装，有可能会出现如下错误：
+
+![1560739143890](images\1560739143890.png)
+
+此时需要安装lua相关依赖库的支持，执行如下命令即可：
+
+```properties
+yum install libtermcap-devel ncurses-devel libevent-devel readline-devel
+```
+
+此时再执行lua测试看lua是否安装成功
+
+```properties
+[root@localhost ~]# lua
+Lua 5.1.4  Copyright (C) 1994-2008 Lua.org, PUC-Rio
+```
+
+#### 安装openResty
+
+linux安装openresty:
+
+1.添加仓库执行命令
+
+```shell
+ yum install yum-utils
+ yum-config-manager --add-repo https://openresty.org/package/centos/openresty.repo
+```
+
+2.执行安装
+
+```
+yum install openresty
+```
+
+3.安装成功后 会在默认的目录如下：
+
+```
+/usr/local/openresty
+```

@@ -1,166 +1,93 @@
-# docker离线安装
+#### 1.1 安装fastDfs
+在docker里执行docker images查看
 
-## 下载docker镜像包
-
-#### 1.下载环境
-> 访问 https://download.docker.com/linux/static/stable/x86_64/
-> 
-> 下载对应版本的docker
->
->（注： centos需要内核3.10以上的版本） 
-> 
-```shell script
-    uname -r     #查看centos下的内核版本
+```properties
+docker pull morunchang/fastdfs
 ```
 
-#### 2.复制tgz 包到任意路径下
+运行tracker
 
-```shell script
-    tar -zxvf docker.tgz #解压包
-
-    cp docker/* /usr/bin #复制解压的文件到/usr/bin目录下
+```properties
+docker run -d --name tracker --net=host morunchang/fastdfs sh tracker.sh
 ```
 
-```shell script
-    vi /etc/systemd/system/docker.service  #创建docker.service 文件 （一定要在这个路径下）
+运行storage
 
-    #内容
-    
-    [Unit]
-    
-    Description=Docker Application Container Engine
-    
-    Documentation=https://docs.docker.com
-    
-    After=network-online.target firewalld.service
-    
-    Wants=network-online.target
-    
-    [Service]
-    
-    Type=notify
-    
-    # the default is not to use systemd for cgroups because the delegate issues still
-    
-    # exists and systemd currently does not support the cgroup feature set required
-    
-    # for containers run by docker
-    
-    ExecStart=/usr/bin/dockerd
-    
-    ExecReload=/bin/kill -s HUP $MAINPID
-    
-    # Having non-zero Limit*s causes performance problems due to accounting overhead
-    
-    # in the kernel. We recommend using cgroups to do container-local accounting.
-    
-    LimitNOFILE=infinity
-    
-    LimitNPROC=infinity
-    
-    LimitCORE=infinity
-    
-    # Uncomment TasksMax if your systemd version supports it.
-    
-    # Only systemd 226 and above support this version.
-    
-    #TasksMax=infinity
-    
-    TimeoutStartSec=0
-    
-    # set delegate yes so that systemd does not reset the cgroups of docker containers
-    
-    Delegate=yes
-    
-    # kill only the docker process, not all processes in the cgroup
-    
-    KillMode=process
-    
-    # restart the docker process if it exits prematurely
-    
-    Restart=on-failure
-    
-    StartLimitBurst=3
-    
-    StartLimitInterval=60s
-    
-    [Install]
-    
-    WantedBy=multi-user.target
-    
+```properties
+docker run -d --name storage --net=host -e TRACKER_IP=192.168.211.132:22122 -e GROUP_NAME=group1 morunchang/fastdfs sh storage.sh
 ```
 
-#### 启动服务
-```shell script
-    systemctl daemon-reload    #重新加载配置
+- 使用的网络模式是–net=host, 192.168.14.132是宿主机的IP
+- group1是组名，即storage的组  
+- 如果想要增加新的storage服务器，再次运行该命令，注意更换 新组名
 
-    systemctl start docker    # 启动docker服务
 
-    systemctl status docker   # 查看docker 状态
 
-    systemctl stop docker
+#### 1.2 配置Nginx
 
-    systemctl restart docker
-    
-    docker version #查看
+Nginx在这里主要提供对FastDFS图片访问的支持，Docker容器中已经集成了Nginx，我们需要修改nginx的配置,进入storage的容器内部，修改nginx.conf
+
+```properties
+docker exec -it storage  /bin/bash
 ```
 
-##### 输出镜像文件  save保留镜像历史
-```shell script
-    docker save -o nginx.tar nginx:latest
-    #或
-    docker save > nginx.tar nginx:latest
-    #其中-o和>表示输出到文件，nginx.tar为目标文件，nginx:latest是源镜像名（name:tag）
+进入后
 
+```properties
+vi /etc/nginx/conf/nginx.conf
 ```
 
-##### 装载镜像 (load import)
-```shell script
-    docker load -i nginx.tar
-    #或
-    docker load < nginx.tar
-    #其中-i和<表示从文件输入。会成功导入镜像及相关元数据，包括tag信息
+添加以下内容
 
-    docker import nginx-test.tar nginx:imp    # 指定镜像名
-    #或
-    cat nginx-test.tar | docker import - nginx:imp
+![1564792264719](image\1564792264719.png)
+
+上图配置如下：
+
+```properties
+location ~ /M00 {
+     root /data/fast_data/data;
+     ngx_fastdfs_module;
+}
 ```
 
 
-#### 输出镜像文件   export不保留镜像历史
-```shell script
-    docker export -o nginx-test.tar nginx-test
-    #其中-o表示输出到文件，nginx-test.tar为目标文件，nginx-test是源容器名（name）
+
+禁止缓存：解决图片删除后，还能访问的问题
+
 ```
-
-#### docker 基础命令
-
-```shell script
-    docker ps    #查看启动的镜像
-    docker ps -a #查看所有装载的镜像，包括失败的
-    
-```
-
-#### 安装问题
-> 出现
-```shell script
-    Error response from daemon : OCI runtime ...... /proc/self/attr/keycreate:permission denied 
-```
-> 修改
-```shell script
-    vi /etc/selinux/config
-
-    #修改 SELINUX=disabled
+add_header Cache-Control no-store;
 ```
 
 
-#### mysql镜像导入
-```shell script
-    docker load -i mysql.tar
 
-    docker images
-
-    docker run -p {容器绑定的外部ip:端口(可省略ip)}:{容器内部端口} -name mysql \-e MYSQL_ROOT_PASSWORD=1234 {镜像名称}:{镜像版本}
+退出容器
 
 ```
+exit
+```
 
+
+
+重启storage容器
+
+```properties
+docker restart storage
+```
+
+
+
+查看启动容器`docker ps`
+
+```properties
+9f2391f73d97 morunchang/fastdfs "sh storage.sh" 12 minutes ago Up 12 seconds storage
+e22a3c7f95ea morunchang/fastdfs "sh tracker.sh" 13 minutes ago Up 13 minutes tracker
+```
+
+
+
+开启启动设置
+
+```properties
+docker update --restart=always tracker
+docker update --restart=always storage
+```

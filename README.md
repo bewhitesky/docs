@@ -51,9 +51,7 @@
     * [redis问题解决方案](redis/redis.md)
     
 * docker
-    * [docker安装](docker/docker.md)
-    * [fastDfs安装](docker/docker-fastDfs.md)
-    * [docker-compose](docker/docker-compose.md)
+    * [fastDfs安装](docker/docker.md)
     
 * fastDfs
     * [引入fastDfs](fastDfs/fastDfs.md)

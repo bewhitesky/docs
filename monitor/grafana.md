@@ -106,5 +106,3 @@ sudo dpkg -i grafana_5.4.2_amd64.deb
 
 
 
-# druid数据库连接池 模板配置
-

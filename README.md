@@ -62,4 +62,10 @@
     * [nginx基础](nginx/nginx.md)
     
 * canal
-    * [canal配置](canal/canal.md)
+    * [canal配置-admin](canal/canal-admin.md)
+    * [canal配置-server](canal/canal-server.md)
+ 
+* monitor
+    * [monitor-promethus](monitor/promethus.md)
+    * [monitor-grafana](canal/grafana.md)
+    * [monitor-druid](canal/Druid模板配置.md)
